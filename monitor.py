@@ -3,6 +3,7 @@ import json
 import os
 from datetime import datetime
 from pathlib import Path
+import pytz
 
 def load_config():
     with open('config.json', 'r') as f:
@@ -54,7 +55,16 @@ def main():
         print("Error: TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID must be set")
         return
     
-    timestamp = datetime.utcnow().strftime('%Y-%m-%d %H:%M:%S')
+    # Get current time in different timezones
+    utc_now = datetime.utcnow()
+    ist_tz = pytz.timezone('Asia/Kolkata')
+    us_eastern_tz = pytz.timezone('US/Eastern')
+    
+    utc_time = utc_now.replace(tzinfo=pytz.UTC)
+    ist_time = utc_time.astimezone(ist_tz)
+    us_time = utc_time.astimezone(us_eastern_tz)
+    
+    timestamp = utc_now.strftime('%Y-%m-%d %H:%M:%S')
     failed_urls = []
     results = {
         "timestamp": timestamp,
@@ -80,7 +90,8 @@ def main():
     
     if failed_urls:
         message = f"🚨 <b>Sentinel Alert</b>\n\n"
-        message += f"Time: {timestamp} UTC\n\n"
+        message += f"🇮🇳 IST: {ist_time.strftime('%Y-%m-%d %H:%M:%S')}\n"
+        message += f"🇺🇸 EST: {us_time.strftime('%Y-%m-%d %H:%M:%S')}\n\n"
         for url, status in failed_urls:
             message += f"❌ {url}\nStatus: {status}\n\n"
         

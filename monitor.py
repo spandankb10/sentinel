@@ -79,7 +79,7 @@ def main():
     save_history(results)
     
     if failed_urls:
-        message = f"🚨 <b>URL Monitor Alert</b>\n\n"
+        message = f"🚨 <b>Sentinel Alert</b>\n\n"
         message += f"Time: {timestamp} UTC\n\n"
         for url, status in failed_urls:
             message += f"❌ {url}\nStatus: {status}\n\n"

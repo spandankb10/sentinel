@@ -1,4 +1,4 @@
-# URL Monitor
+# Sentinel
 
 Monitors URLs every 5 minutes and sends Telegram notifications on failures. Includes a live dashboard with uptime stats and historical data.
 
@@ -95,7 +95,7 @@ python monitor.py
 ```
 
 **Test on GitHub:**
-- Go to Actions tab → URL Monitor workflow
+- Go to Actions tab → Sentinel workflow
 - Click "Run workflow" to trigger manually
 - Check your Telegram for failure notifications
 

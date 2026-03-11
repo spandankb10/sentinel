@@ -1,4 +1,4 @@
-name: URL Monitor
+name: Sentinel
 
 on:
   schedule:

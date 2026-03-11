@@ -1,1 +1,43 @@
-[]
+[
+  {
+    "timestamp": "2026-03-11 10:55:17",
+    "checks": [
+      {
+        "url": "https://vultrconf.com",
+        "status": "up",
+        "code": 200,
+        "error": null
+      },
+      {
+        "url": "https://vultrconf.com/telecommunications",
+        "status": "up",
+        "code": 200,
+        "error": null
+      },
+      {
+        "url": "https://vultrconf.com/hospitality",
+        "status": "up",
+        "code": 200,
+        "error": null
+      },
+      {
+        "url": "https://vultrconf.com/finance",
+        "status": "up",
+        "code": 200,
+        "error": null
+      },
+      {
+        "url": "https://vultrconf.com/healthcare",
+        "status": "up",
+        "code": 200,
+        "error": null
+      },
+      {
+        "url": "https://fake-url-1.com",
+        "status": "down",
+        "code": null,
+        "error": "HTTPSConnectionPool(host='fake-url-1.com', port=443): Max retries exceeded with url: / (Caused by NameResolutionError(\"HTTPSConnection(host='fake-url-1.com', port=443): Failed to resolve 'fake-url-1.com' ([Errno -2] Name or service not known)\"))"
+      }
+    ]
+  }
+]

@@ -68,19 +68,25 @@ python monitor.py
 
 ## Dashboard
 
-After setup, enable GitHub Pages:
-1. Go to repo Settings → Pages
-2. Source: Deploy from a branch
-3. Branch: main, folder: /docs
-4. Save
+The dashboard provides a live view of your monitoring status with uptime charts and failure history.
+
+**Enable GitHub Pages:**
+1. Go to your repo → Settings → Pages
+2. **Source:** Deploy from a branch
+3. **Branch:** main
+4. **Folder:** /docs
+5. Click "Save"
 
 Your dashboard will be available at: `https://[username].github.io/[repo-name]/`
+(e.g., `https://spandankb10.github.io/sentinel/`)
+
+**Note:** It may take a few minutes for the dashboard to become available after enabling Pages.
 
 The dashboard shows:
 - Current status of all URLs
-- Uptime percentage
+- Uptime percentage for each URL
 - 24-hour history chart
-- Recent failures table
+- Recent failures table with IST and US Eastern times
 
 ## Testing
 

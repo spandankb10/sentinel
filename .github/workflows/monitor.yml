@@ -1,9 +1,9 @@
 name: Sentinel
 
 on:
-  schedule:
-    - cron: '*/5 * * * *'  # Every 5 minutes
-  workflow_dispatch:  # Allows manual trigger
+  # schedule:
+  #   - cron: '*/5 * * * *'  # Every 5 minutes - DISABLED
+  workflow_dispatch:  # Allows manual trigger only
 
 permissions:
   contents: write  # Allow writing to repository

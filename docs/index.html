@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Monitor Dashboard</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        h1 { margin-bottom: 30px; font-size: 2rem; }
+        .status-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        .status-card {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            border-left: 4px solid #10b981;
+        }
+        .status-card.down { border-left-color: #ef4444; }
+        .status-card h3 {
+            font-size: 0.9rem;
+            color: #94a3b8;
+            margin-bottom: 8px;
+            word-break: break-all;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+        .status-badge.up {
+            background: #10b98120;
+            color: #10b981;
+        }
+        .status-badge.down {
+            background: #ef444420;
+            color: #ef4444;
+        }
+        .uptime {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        .chart-container {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-container h2 {
+            margin-bottom: 20px;
+            font-size: 1.3rem;
+        }
+        canvas { max-height: 300px; }
+        .history-table {
+            background: #1e293b;
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #334155;
+        }
+        th {
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+        td { font-size: 0.9rem; }
+        .last-updated {
+            text-align: center;
+            margin-top: 30px;
+            color: #64748b;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 URL Monitor Dashboard</h1>
+        
+        <div class="status-grid" id="statusGrid"></div>
+        
+        <div class="chart-container">
+            <h2>24 Hour History</h2>
+            <canvas id="uptimeChart"></canvas>
+        </div>
+        
+        <div class="history-table">
+            <h2 style="margin-bottom: 20px;">Recent Failures</h2>
+            <table id="failureTable">
+                <thead>
+                    <tr>
+                        <th>Time</th>
+                        <th>URL</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+        
+        <div class="last-updated" id="lastUpdated"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        async function loadData() {
+            const response = await fetch('history.json');
+            const history = await response.json();
+            
+            if (history.length === 0) return;
+            
+            const latest = history[history.length - 1];
+            const urls = [...new Set(history.flatMap(h => h.checks.map(c => c.url)))];
+            
+            // Status cards
+            const statusGrid = document.getElementById('statusGrid');
+            urls.forEach(url => {
+                const urlHistory = history.map(h => 
+                    h.checks.find(c => c.url === url)
+                ).filter(Boolean);
+                
+                const upCount = urlHistory.filter(c => c.status === 'up').length;
+                const uptime = ((upCount / urlHistory.length) * 100).toFixed(2);
+                const current = latest.checks.find(c => c.url === url);
+                
+                const card = document.createElement('div');
+                card.className = `status-card ${current.status}`;
+                card.innerHTML = `
+                    <h3>${url}</h3>
+                    <span class="status-badge ${current.status}">${current.status.toUpperCase()}</span>
+                    <div class="uptime">Uptime: ${uptime}%</div>
+                `;
+                statusGrid.appendChild(card);
+            });
+            
+            // Chart - last 24 hours (288 checks at 5min intervals)
+            const last24h = history.slice(-288);
+            const ctx = document.getElementById('uptimeChart');
+            
+            const datasets = urls.map((url, i) => {
+                const colors = ['#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6'];
+                return {
+                    label: url,
+                    data: last24h.map(h => {
+                        const check = h.checks.find(c => c.url === url);
+                        return check && check.status === 'up' ? 1 : 0;
+                    }),
+                    borderColor: colors[i % colors.length],
+                    backgroundColor: colors[i % colors.length] + '20',
+                    tension: 0.4
+                };
+            });
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: last24h.map(h => new Date(h.timestamp).toLocaleTimeString()),
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: { labels: { color: '#e2e8f0' } }
+                    },
+                    scales: {
+                        y: {
+                            ticks: { color: '#94a3b8', callback: v => v ? 'UP' : 'DOWN' },
+                            grid: { color: '#334155' }
+                        },
+                        x: {
+                            ticks: { color: '#94a3b8', maxTicksLimit: 12 },
+                            grid: { color: '#334155' }
+                        }
+                    }
+                }
+            });
+            
+            // Failure table
+            const failures = history.flatMap(h => 
+                h.checks
+                    .filter(c => c.status === 'down')
+                    .map(c => ({ ...c, timestamp: h.timestamp }))
+            ).slice(-50).reverse();
+            
+            const tbody = document.querySelector('#failureTable tbody');
+            failures.forEach(f => {
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${new Date(f.timestamp).toLocaleString()}</td>
+                    <td>${f.url}</td>
+                    <td>${f.error || f.code}</td>
+                `;
+            });
+            
+            document.getElementById('lastUpdated').textContent = 
+                `Last updated: ${new Date(latest.timestamp).toLocaleString()}`;
+        }
+        
+        loadData();
+    </script>
+</body>
+</html>
